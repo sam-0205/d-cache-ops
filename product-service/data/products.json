@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1",
+    "name": "Wireless Mouse",
+    "price": 799,
+    "category": "Electronics"
+  },
+  {
+    "id": "2",
+    "name": "Mechanical Keyboard",
+    "price": 2499,
+    "category": "Electronics"
+  },
+  {
+    "id": "3",
+    "name": "Water Bottle",
+    "price": 499,
+    "category": "Home"
+  },
+  {
+    "id": "4",
+    "name": "Notebook",
+    "price": 199,
+    "category": "Stationery"
+  }
+]
