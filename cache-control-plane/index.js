@@ -7,6 +7,12 @@ const THRESHOLDS = {
   MIN_MISSES: 10,
 };
 
+const SERVICE_ENDPOINTS = {
+  "product-service": "http://localhost:3001",
+  "user-service": "http://localhost:3002",
+};
+
+
 
 const pool = new Pool({
   host: "localhost",
@@ -19,12 +25,14 @@ const pool = new Pool({
 async function getEndpointStats() {
   const query = `
     SELECT
-      endpoint,
-      COUNT(*) AS total_requests,
-      COUNT(*) FILTER (WHERE cache_hit = false) AS cache_misses
-    FROM usage_metrics
-    WHERE created_at >= NOW() - INTERVAL '5 minutes'
-    GROUP BY endpoint;
+  service,
+  endpoint,
+  COUNT(*) AS total_requests,
+  COUNT(*) FILTER (WHERE cache_hit = false) AS cache_misses
+FROM usage_metrics
+WHERE created_at >= NOW() - INTERVAL '5 minutes'
+GROUP BY service, endpoint;
+
   `;
 
   const result = await pool.query(query);
@@ -43,22 +51,31 @@ function decideCacheRules(stats) {
       cacheMisses >= THRESHOLDS.MIN_MISSES
     ) {
       rules.push({
+        service: row.service,
         endpoint: row.endpoint,
-        ttl: 120, // hot endpoint
+        ttl: 120
       });
+
     }
   }
 
   return rules;
 }
 
-async function pushRulesToProductService(rules) {
+async function pushRulesToService(rules) {
   for (const rule of rules) {
+    const serviceUrl = SERVICE_ENDPOINTS[rule.service];
+
+    if (!serviceUrl) {
+      console.log("Unknown service, skipping:", rule.service);
+      continue;
+    }
+
     try {
-      await axios.post("http://localhost:3001/cache/update-rules", rule);
+      await axios.post(`${serviceUrl}/cache/update-rules`, rule);
       console.log("Pushed cache rule:", rule);
     } catch (err) {
-      console.error("Failed to push rule:", rule, err.message);
+      console.error("Failed to push rule:", rule.service, err.message);
     }
   }
 }
@@ -80,5 +97,5 @@ cron.schedule("*/60 * * * * *", async () => {
     return;
   }
 
-  await pushRulesToProductService(rules);
+  await pushRulesToService(rules);
 });

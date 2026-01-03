@@ -33,17 +33,22 @@ redisClient.on("error", (err) => {
 const cacheRules = new Map();
 
 app.post("/cache/update-rules", express.json(), (req, res) => {
-  const { endpoint, ttl } = req.body;
+  const { service, endpoint, ttl } = req.body;
 
-  if (!endpoint || !ttl) {
+  if (!service || !endpoint || !ttl) {
     return res.status(400).json({ message: "Invalid rule format" });
+  }
+
+  if (service !== "product-service") {
+    return res.json({ message: "Rule ignored (not for this service)" });
   }
 
   cacheRules.set(endpoint, { ttl });
 
-  console.log("Cache rule updated:", endpoint, ttl);
+  console.log("Cache rule applied:", endpoint, ttl);
   res.json({ message: "Cache rule applied" });
 });
+
 
 
 let channel;
