@@ -2,10 +2,10 @@ const { Pool } = require("pg");
 const axios = require("axios");
 const cron = require("node-cron");
 
-// const THRESHOLDS = {
-//     MIN_REQUESTS: 20,
-//     MIN_MISSES: 10,
-// };
+const THRESHOLDS = {
+    MIN_REQUESTS: 20,
+    MIN_MISSES: 10,
+};
 
 const SERVICE_ENDPOINTS = {
     "product-service": "http://localhost:3001",
